@@ -1,0 +1,15 @@
+artifact_uri: file:///home/gentroyal/loan-etl-pipeline/scripts/mlruns/0/f969843cde284a7cbf3742c21e1be998/artifacts
+end_time: 1747405050220
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: f969843cde284a7cbf3742c21e1be998
+run_name: luxuriant-bass-485
+run_uuid: f969843cde284a7cbf3742c21e1be998
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747404787259
+status: 3
+tags: []
+user_id: gentroyal
