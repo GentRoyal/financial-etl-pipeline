@@ -1,76 +1,87 @@
 import sqlite3
 import pandas as pd
+from config import settings
 import os
 
-def connect_to_db():
+class MyDBRepo:
     """
-    Establishes a connection to the SQLite database.
-
-    Returns:
-    sqlite3.Connection: SQLite connection object or None if an error occurs.
+    A class for storing and retrieving data using SQLite.
     """
-    db_name = "data.sqlite"
-    try:
-        path = os.path.abspath(os.path.join('airflow_projects', 'stock-etl-pipeline', 'data'))
-        conn = sqlite3.connect(f"{path}/{db_name}")
-        return conn
-        
-    except sqlite3.Error as e:
-        print(f"Error connecting to database: {e}")
-        return None
 
-def write_to_table(df, table_name, if_exists = 'replace'):
-    """
-    Writes a DataFrame to a specified table in the database.
+    def __init__(self):
+        """
+        Initializes a connection to the SQLite database.
+        Sets the connection to None if an error occurs.
+        """
+        self.db_name = settings.db_name
 
-    Parameters:
-    conn (sqlite3.Connection): The SQLite connection.
-    df (pd.DataFrame): DataFrame to write.
-    table_name (str): Table name.
-    if_exists (str): Behavior if table exists ('replace', 'append', etc.)
+        absolute_path = os.path.abspath(__file__)
+        directory_name = os.path.dirname(absolute_path)
+        parent_name = os.path.dirname(directory_name)
+        self.path = os.path.join(parent_name, 'data')
+        
+        try:
+            self.conn = sqlite3.connect(f"{self.path}/{self.db_name}")
+        except sqlite3.Error as e:
+            print(f"Error connecting to database: {e}")
+            self.conn = None
 
-    Returns:
-    None
-    """
-    conn = connect_to_db()
-    try:
-        df.to_sql(name = table_name, con = conn, if_exists = if_exists, index = False)
-        print(f"Data inserted into table '{table_name}' successfully.")
-        
-    except ValueError as ve:
-        print(f"Value error inserting into table '{table_name}': {ve}")
-        
-    except sqlite3.Error as sql_err:
-        print(f"SQLite error inserting into table '{table_name}': {sql_err}")
-        
-    except Exception as e:
-        print(f"Unexpected error inserting into table '{table_name}': {e}")
+    def to_table(self, df, symbol, if_exists = 'replace'):
+        """
+        Saves a DataFrame to a table in the SQLite database.
 
-def read_from_table(table_name):
-    """
-    Reads data from a specified table in the database.
+        Parameters:
+        df (pd.DataFrame): The DataFrame to be saved.
+        symbol (str): The name of the table.
+        if_exists (str): Behavior when the table already exists. Defaults to 'replace'.
 
-    Parameters:
-    conn (sqlite3.Connection): The SQLite connection.
-    table_name (str): Table name.
+        Returns:
+        None
+        """
+        if self.conn is None:
+            print("No database connection.")
+            return
 
-    Returns:
-    pd.DataFrame: DataFrame with the result or empty DataFrame on failure.
-    """
-    conn = connect_to_db()
-    path = os.path.abspath(os.path.join('airflow_projects', 'stock-etl-pipeline', 'data'))
-    try:
-        query = f"SELECT * FROM {table_name} LIMIT 500"
-        df = pd.read_sql(query, conn)
-        print(f"Data retrieved from table '{table_name}' successfully.")
-        df.to_csv(f'{path}/processed/{table_name}.csv', index = False)
-        
-        return df
-        
-    except pd.io.sql.DatabaseError as db_err:
-        print(f"Database error reading from table '{table_name}': {db_err}")
-        
-    except Exception as e:
-        print(f"Unexpected error reading from table '{table_name}': {e}")
+        try:
+            df.to_sql(name = symbol, con = self.conn, if_exists = if_exists, index = False)
+            print(f"Data inserted into table '{symbol}' successfully.")
+            
+        except ValueError as ve:
+            print(f"Value error inserting data into table '{symbol}': {ve}")
+            
+        except sqlite3.Error as sql_err:
+            print(f"SQLite error inserting data into table '{symbol}': {sql_err}")
+            
+        except Exception as e:
+            print(f"Unexpected error inserting data into table '{symbol}': {e}")
 
-    return pd.DataFrame()
+    def from_table(self, symbol):
+        """
+        Retrieves data from a specified table in the SQLite database.
+
+        Parameters:
+        symbol (str): The name of the table to query.
+
+        Returns:
+        pd.DataFrame: The queried data as a DataFrame, or an empty DataFrame if an error occurs.
+        """
+        if self.conn is None:
+            print("No database connection.")
+            return pd.DataFrame()
+
+        try:
+            query = f"SELECT * FROM {symbol} LIMIT 500"
+            df = pd.read_sql(query, self.conn)
+            
+            print(f"Data retrieved from table '{symbol}' successfully.")
+            df.to_csv(f'{self.path}/processed/{symbol}.csv', index = False)
+            
+            return df
+            
+        except pd.io.sql.DatabaseError as db_err:
+            print(f"Database error reading from table '{symbol}': {db_err}")
+            
+        except Exception as e:
+            print(f"Unexpected error reading from table '{symbol}': {e}")
+
+        return pd.DataFrame()
