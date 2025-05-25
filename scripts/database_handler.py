@@ -70,7 +70,7 @@ class MyDBRepo:
             return pd.DataFrame()
 
         try:
-            query = f"SELECT * FROM {symbol} LIMIT 500"
+            query = f"SELECT * FROM {symbol}"
             df = pd.read_sql(query, self.conn)
             
             print(f"Data retrieved from table '{symbol}' successfully.")
