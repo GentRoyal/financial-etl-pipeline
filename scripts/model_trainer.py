@@ -16,9 +16,9 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from collections import Counter
-from statistical_measures import Statistics
+from scripts.statistical_measures import Statistics
 
-from config import settings
+from scripts.config import settings
 
 mlflow.set_tracking_uri("http://127.0.0.1:5000")  # Use your server address
 mlflow.set_experiment("Feature_Selection_Experiments")

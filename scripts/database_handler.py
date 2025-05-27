@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-from config import settings
+from scripts.config import settings
 import os
 
 class MyDBRepo:
