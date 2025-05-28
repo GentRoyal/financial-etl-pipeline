@@ -12,10 +12,9 @@ class TechnicalIndicatorGenerator:
         absolute_path = os.path.abspath(__file__)
         directory_name = os.path.dirname(absolute_path)
         parent_name = os.path.dirname(directory_name)
-        self.path = os.path.join(parent_name, 'data')
-        
+        self.path = os.path.join(parent_name, 'data')        
 
-    def generate_indicators(self, symbol):
+    def generate_indicators(self, df, symbol):
         """
         Adds a variety of technical indicators to a DataFrame.
 
@@ -26,7 +25,7 @@ class TechnicalIndicatorGenerator:
         pd.DataFrame: Enhanced DataFrame with technical indicators.
         """
 
-        df = pd.read_csv(f'{self.path}/processed/{symbol}.csv')
+        #df = pd.read_csv(f'{self.path}/processed/{symbol}.csv')
         
         # Utility Indicators
         df['hl2'] = (df['high'] + df['low']) / 2

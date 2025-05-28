@@ -49,8 +49,8 @@ class MyAPI:
             response = requests.get(self.base_url, params=params, timeout=10)
             response.raise_for_status()
             df = pd.read_csv(StringIO(response.text))
-            df.set_index('timestamp', inplace=True)
-            df.sort_index(ascending=False)
+            df.set_index('timestamp', inplace = True)
+            df.sort_index(ascending = False)
 
             df.to_csv(f'{self.path}/{symbol}.csv')
 
