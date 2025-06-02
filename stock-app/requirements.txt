@@ -1,0 +1,9 @@
+fastapi
+pydantic
+pydantic_settings
+uvicorn
+pandas
+numpy
+requests
+pandas_ta
+scikit-learn

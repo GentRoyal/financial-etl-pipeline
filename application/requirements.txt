@@ -1,7 +1,0 @@
-fastapi
-pydantic
-uvicorn
-pandas
-numpy
-sqlite3
-requests

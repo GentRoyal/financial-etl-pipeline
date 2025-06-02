@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Model Prediction API</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 0;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .api-config {
+            padding: 0 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-config input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .api-config input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .api-config label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .nav-item {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-left-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            fill: #667eea;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #155724;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .alert-error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #721c24;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .prediction-result {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .prediction-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .prob-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-offline {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .data-table {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #e1e5e9;
+            margin-bottom: 1rem;
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-size-selector select {
+            padding: 4px 8px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        #price-chart {
+            height: 400px !important;
+        }
+
+        #prediction-chart {
+            height: 200px !important;
+        }
+
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: fixed;
+                top: 0;
+                left: -100%;
+                z-index: 1000;
+                height: 100vh;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .main-content {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .chart-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .pagination-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>Trading API</h1>
+                <p>Model Prediction Interface</p>
+            </div>
+            
+            <div class="api-config">
+                <label>API Base URL</label>
+                <input type="text" id="global-api-url" value="http://localhost:8000" placeholder="http://localhost:8000">
+            </div>
+            
+            <div class="nav-item active" data-page="home">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                Home
+            </div>
+            <div class="nav-item" data-page="predict">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M9 11H7v9h2v-9zm4 0h-2v9h2v-9zm4 0h-2v9h2v-9zm2.5-9H21v2h-1.5v2h-2v2h-13v-2h-2V4H1V2h1.5C2.5 2 3 2.5 3 3v1h16V3c0-.5.5-1 1-1z"/>
+                </svg>
+                Make Prediction
+            </div>
+            <div class="nav-item" data-page="accuracy">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                    <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </svg>
+                Model Accuracy
+            </div>
+            <div class="nav-item" data-page="data">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M3 3v18h18v-2H5V3H3z"/>
+                    <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                Load Data
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="page active" id="home">
+                <div class="card">
+                    <h2>Welcome to Trading Model API</h2>
+                    <p style="font-size: 1.1rem; line-height: 1.6; color: #666; margin-bottom: 2rem;">
+                        This is a comprehensive interface for interacting with your FastAPI trading model prediction service. 
+                        Use the sidebar navigation to access different features of the API.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 1.5rem; border-radius: 16px;">
+                            <h3 style="color: #667eea; margin-bottom: 1rem;">&#x1F4B0; Make Predictions</h3>
+                            <p style="color: #666;">Submit feature data to get trading predictions from your trained model.</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(34, 139, 34, 0.1)); padding: 1.5rem; border-radius: 16px;">
+                            <h3 style="color: #28a745; margin-bottom: 1rem;">&#x1F4C8; Model Accuracy</h3>
+                            <p style="color: #666;">Check the current accuracy metrics of your loaded model.</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1)); padding: 1.5rem; border-radius: 16px;">
+                            <h3 style="color: #ffc107; margin-bottom: 1rem;">&#x1F4CA; Load Stock Data</h3>
+                            <p style="color: #666;">Fetch and display stock data for any symbol using the API.</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(0, 0, 0, 0.05); border-radius: 16px;">
+                        <h3 style="margin-bottom: 1rem;">API Status</h3>
+                        <div id="api-status" style="display: flex; align-items: center;">
+                            <span class="status-indicator status-offline"></span>
+                            <span>Checking connection...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="predict">
+                <div class="card">
+                    <h2>Make Prediction</h2>
+                    <p style="color: #666; margin-bottom: 2rem;">Enter feature values to get a prediction from the trading model.</p>
+                    
+                    <form id="prediction-form">
+                        <div class="form-group">
+                            <label>Features (JSON format)</label>
+                            <textarea class="form-control" id="features-input" rows="8" placeholder='{"feature1": 0.5, "feature2": 1.2, "feature3": -0.3}'></textarea>
+                            <small style="color: #666; margin-top: 0.5rem; display: block;">Enter feature values as a JSON object. Required features will be validated by the API.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 11H7v9h2v-9zm4 0h-2v9h2v-9zm4 0h-2v9h2v-9z"/>
+                            </svg>
+                            Make Prediction
+                        </button>
+                    </form>
+
+                    <div class="loading" id="prediction-loading">
+                        <div class="spinner"></div>
+                        <p>Making prediction...</p>
+                    </div>
+
+                    <div id="prediction-result"></div>
+                </div>
+            </div>
+
+            <div class="page" id="accuracy">
+                <div class="card">
+                    <h2>Model Accuracy</h2>
+                    <p style="color: #666; margin-bottom: 2rem;">Check the current accuracy of the loaded trading model.</p>
+                    
+                    <button type="button" class="btn btn-primary" onclick="checkAccuracy()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                        </svg>
+                        Check Accuracy
+                    </button>
+
+                    <div class="loading" id="accuracy-loading">
+                        <div class="spinner"></div>
+                        <p>Fetching model accuracy...</p>
+                    </div>
+
+                    <div id="accuracy-result"></div>
+                </div>
+            </div>
+
+            <div class="page" id="data">
+                <div class="card">
+                    <h2>Load Stock Data</h2>
+                    <p style="color: #666; margin-bottom: 2rem;">Fetch stock data for analysis using the API.</p>
+                    
+                    <form id="data-form">
+                        <div class="form-group">
+                            <label>Stock Symbol</label>
+                            <input type="text" class="form-control" id="symbol-input" placeholder="AAPL" required>
+                            <small style="color: #666; margin-top: 0.5rem; display: block;">Enter a valid stock symbol (e.g., AAPL, GOOGL, MSFT)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Data Size</label>
+                            <select class="form-control" id="size-input">
+                                <option value="compact">Compact (Latest 100)</option>
+                                <option value="full">Full (All available)</option>
+                            </select>
+                            <small style="color: #666; margin-top: 0.5rem; display: block;">Choose how much data to load.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 3v18h18v-2H5V3H3z"/>
+                                <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                            </svg>
+                            Load Data
+                        </button>
+                    </form>
+
+                    <div class="loading" id="data-loading">
+                        <div class="spinner"></div>
+                        <p>Loading stock data...</p>
+                    </div>
+
+                    <div id="data-result"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let currentData = [];
+        let currentPage = 0;
+        let pageSize = 20;
+        let priceChart = null;
+        let predictionChart = null; // New chart for predictions
+
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove active class from all nav items and pages
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                
+                // Add active class to clicked nav item
+                item.classList.add('active');
+                
+                // Show corresponding page
+                const pageId = item.getAttribute('data-page');
+                document.getElementById(pageId).classList.add('active');
+            });
+        });
+
+        // Get current API URL
+        function getApiUrl() {
+            return document.getElementById('global-api-url').value;
+        }
+
+        // Check API status on load and when URL changes
+        window.addEventListener('load', checkApiStatus);
+        document.getElementById('global-api-url').addEventListener('change', checkApiStatus);
+
+        async function checkApiStatus() {
+            const statusElement = document.getElementById('api-status');
+            const apiUrl = getApiUrl();
+            
+            try {
+                const response = await fetch(`${apiUrl}/`);
+                if (response.ok) {
+                    statusElement.innerHTML = '<span class="status-indicator status-online"></span><span>API is online and ready</span>';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                statusElement.innerHTML = '<span class="status-indicator status-offline"></span><span>API is offline - Please check your FastAPI server</span>';
+            }
+        }
+
+        // Prediction form handler
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const apiUrl = getApiUrl();
+            const featuresText = document.getElementById('features-input').value;
+            const loading = document.getElementById('prediction-loading');
+            const resultDiv = document.getElementById('prediction-result');
+            
+            // Clear previous results
+            resultDiv.innerHTML = '';
+            loading.style.display = 'block';
+            
+            try {
+                const features = JSON.parse(featuresText);
+                
+                const response = await fetch(`${apiUrl}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ features: features })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayPredictionResult(data);
+                } else {
+                    throw new Error(data.error || data.detail || 'Prediction failed');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayPredictionResult(data) {
+            const resultDiv = document.getElementById('prediction-result');
+            
+            let probabilitiesHtml = '';
+            if (data.probabilities) {
+                probabilitiesHtml = '<div class="probabilities">';
+                for (const [className, prob] of Object.entries(data.probabilities)) {
+                    probabilitiesHtml += `
+                        <div class="prob-item">
+                            <div style="font-weight: bold; color: #667eea;">Class ${className}</div>
+                            <div style="font-size: 1.2rem; margin-top: 0.5rem;">${(prob * 100).toFixed(2)}%</div>
+                        </div>
+                    `;
+                }
+                probabilitiesHtml += '</div>';
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">Prediction completed successfully!</div>
+                <div class="prediction-result">
+                    <h3>Prediction Result</h3>
+                    <div class="prediction-value">Predicted Class: ${data.prediction}</div>
+                    ${probabilitiesHtml ? '<h4 style="margin-bottom: 1rem;">Class Probabilities</h4>' + probabilitiesHtml : ''}
+                </div>
+            `;
+        }
+
+        // Model accuracy check
+        async function checkAccuracy() {
+            const apiUrl = getApiUrl();
+            const loading = document.getElementById('accuracy-loading');
+            const resultDiv = document.getElementById('accuracy-result');
+            
+            resultDiv.innerHTML = '';
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${apiUrl}/model_accuracy`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">Model accuracy retrieved successfully!</div>
+                        <div class="prediction-result">
+                            <h3>Model Performance</h3>
+                            <div class="prediction-value">Accuracy: ${data.model_accuracy}</div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Failed to fetch accuracy');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Data loading form handler
+        document.getElementById('data-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const apiUrl = getApiUrl();
+            const symbol = document.getElementById('symbol-input').value.toUpperCase();
+            const size = document.getElementById('size-input').value;
+
+            const loading = document.getElementById('data-loading');
+            const resultDiv = document.getElementById('data-result');
+            
+            resultDiv.innerHTML = '';
+            loading.style.display = 'block';
+            
+            try {
+                // Load stock data and prediction in parallel
+                const [dataResponse, predictionResponse] = await Promise.all([
+                    fetch(`${apiUrl}/load_data?symbol=${symbol}&size=${size}`, {
+                        method: 'POST'
+                    }),
+                    fetch(`${apiUrl}/historical_prediction?symbol=${symbol}`, {
+                        method: 'POST'
+                    })
+                ]);
+                
+                const data = await dataResponse.json();
+                let predictionData = null;
+                
+                if (predictionResponse.ok) {
+                    predictionData = await predictionResponse.json();
+                } else {
+                    console.warn(`Historical prediction for ${symbol} failed:`, await predictionResponse.json());
+                }
+                
+                if (dataResponse.ok) {
+                    currentData = Object.entries(data).map(([date, values]) => ({
+                        Date: date,
+                        Open: values.open,
+                        High: values.high,
+                        Low: values.low,
+                        Close: values.close,
+                        Volume: values.volume
+                    }));
+                    currentPage = 0;
+                    displayDataResult(symbol, predictionData);
+                } else {
+                    throw new Error(data.message || 'Failed to load data');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayDataResult(symbol, predictionData) {
+            const resultDiv = document.getElementById('data-result');
+            
+            if (!Array.isArray(currentData) || currentData.length === 0) {
+                resultDiv.innerHTML = `<div class="alert alert-error">No data received for ${symbol}</div>`;
+                return;
+            }
+            
+            // Create charts first
+            const chartsHtml = createChartsHtml(symbol);
+            let predictionChartHtml = '';
+            if (predictionData && predictionData.predictions && predictionData.predictions.length > 0) {
+                predictionChartHtml = createPredictionChartHtml(predictionData);
+            }
+            
+            // Create data table with pagination
+            const tableHtml = createDataTable();
+            
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">Successfully loaded ${currentData.length} records for ${symbol}</div>
+                ${chartsHtml}
+                ${predictionChartHtml} ${tableHtml}
+            `;
+            
+            // Initialize charts after DOM is updated
+            setTimeout(() => {
+                initializeCharts();
+                if (predictionData && predictionData.predictions && predictionData.predictions.length > 0) {
+                    initializePredictionChart(predictionData);
+                }
+            }, 100);
+        }
+
+        
+function createChartsHtml(symbol) {
+    return `
+        <div class="chart-container">
+            <div class="chart-controls">
+                <h3>Price Chart for ${symbol}</h3>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <input type="hidden" id="chart-type" value="line">
+                    <select id="chart-field" onchange="updateCharts()">
+                        <option value="Close">Close Price</option>
+                        <option value="Open">Open Price</option>
+                        <option value="High">High Price</option>
+                        <option value="Low">Low Price</option>
+                    </select>
+                </div>
+            </div>
+            <canvas id="price-chart" width="400" height="200"></canvas>
+        </div>
+    `;
+}
+
+function createPredictionChartHtml(predictionData) {
+    if (!predictionData || !predictionData.predictions || predictionData.predictions.length === 0) {
+        return '';
+    }
+    return `
+        <div class="chart-container" style="margin-top: 2rem;">
+            <h3>Historical Predictions</h3>
+            <canvas id="prediction-chart" width="400" height="150"></canvas>
+        </div>
+    `;
+}
+
+function createDataTable() {
+    const headers = Object.keys(currentData[0]);
+    const startIndex = currentPage * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, currentData.length);
+    const pageData = currentData.slice(startIndex, endIndex);
+
+    let tableHtml = `
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>${headers.map(header => `<th>${header}</th>`).join('')}</tr>
+                </thead>
+                <tbody>
+    `;
+
+    pageData.forEach(row => {
+        tableHtml += '<tr>';
+        headers.forEach(header => {
+            const value = row[header];
+            const displayValue = typeof value === 'number' ? value.toFixed(4) : value;
+            tableHtml += `<td>${displayValue}</td>`;
+        });
+        tableHtml += '</tr>';
+    });
+
+    tableHtml += `
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-controls">
+            <div class="pagination-info">
+                Showing ${startIndex + 1}-${endIndex} of ${currentData.length} records
+            </div>
+            <div class="page-size-selector">
+                <label>Rows per page:</label>
+                <select id="page-size" onchange="changePageSize()">
+                    <option value="10" ${pageSize === 10 ? 'selected' : ''}>10</option>
+                    <option value="20" ${pageSize === 20 ? 'selected' : ''}>20</option>
+                    <option value="50" ${pageSize === 50 ? 'selected' : ''}>50</option>
+                    <option value="100" ${pageSize === 100 ? 'selected' : ''}>100</option>
+                </select>
+            </div>
+            <div class="pagination-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="goToPage(0)" ${currentPage === 0 ? 'disabled' : ''}>First</button>
+                <button class="btn btn-secondary btn-sm" onclick="goToPage(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>Previous</button>
+                <span style="margin: 0 1rem;">Page ${currentPage + 1} of ${Math.ceil(currentData.length / pageSize)}</span>
+                <button class="btn btn-secondary btn-sm" onclick="goToPage(${currentPage + 1})" ${endIndex >= currentData.length ? 'disabled' : ''}>Next</button>
+                <button class="btn btn-secondary btn-sm" onclick="goToPage(${Math.ceil(currentData.length / pageSize) - 1})" ${endIndex >= currentData.length ? 'disabled' : ''}>Last</button>
+            </div>
+        </div>
+    `;
+
+    return tableHtml;
+}
+
+function initializeCharts() {
+    if (!currentData || currentData.length === 0) return;
+
+    if (priceChart) {
+        priceChart.destroy();
+        priceChart = null;
+    }
+
+    const startIndex = currentPage * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, currentData.length);
+    const chartData = currentData.slice(startIndex, endIndex);
+    const labels = chartData.map(row => row.Date || row.date || '');
+
+    const chartField = document.getElementById('chart-field')?.value || 'Close';
+    const priceData = chartData.map(row => row[chartField] || 0);
+
+    const allPrices = currentData.map(row => row[chartField]);
+    const yMin = Math.min(...allPrices);
+    const yMax = Math.max(...allPrices);
+
+    const priceCtx = document.getElementById('price-chart');
+    if (priceCtx) {
+        priceChart = new Chart(priceCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: chartField + ' Price',
+                    data: priceData,
+                    borderColor: 'rgb(102, 126, 234)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: yMin,     // Set your desired minimum
+                        max: yMax,     // Set your desired maximum
+                        title: {
+                            display: true,
+                            text: 'Price ($)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+}
+
+function initializePredictionChart(predictionData) {
+    if (!predictionData || !predictionData.predictions || predictionData.predictions.length === 0) {
+        return;
+    }
+
+    if (predictionChart) {
+        predictionChart.destroy();
+        predictionChart = null;
+    }
+
+    const predictionDates = predictionData.predictions.map(p => p.date);
+    const predictionValues = predictionData.predictions.map(p => p.prediction);
+
+    const predictionCtx = document.getElementById('prediction-chart');
+    if (predictionCtx) {
+        predictionChart = new Chart(predictionCtx, {
+            type: 'bar', // Bar chart is often good for discrete predictions
+            data: {
+                labels: predictionDates,
+                datasets: [{
+                    label: 'Predicted Action',
+                    data: predictionValues,
+                    backgroundColor: predictionValues.map(p => p === 1 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)'), // Example: Green for 1, Red for 0
+                    borderColor: predictionValues.map(p => p === 1 ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                if (value === 0) return 'Sell/Hold';
+                                if (value === 1) return 'Buy';
+                                return '';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Prediction (0: Sell/Hold, 1: Buy)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // We show labels on the y-axis
+                    }
+                }
+            }
+        });
+    }
+}
+
+
+function updateCharts() {
+    initializeCharts();
+    // Re-initialize prediction chart if data is present
+    if (document.getElementById('prediction-chart')) { // Check if the canvas exists
+        const symbol = document.getElementById('symbol-input').value.toUpperCase();
+        // You might need to refetch or store historical prediction data globally
+        // For simplicity, let's assume `predictionData` is accessible or passed here
+        // If not, you'd need to modify the data loading to store it.
+        // For now, if we assume `predictionData` was successfully fetched and stored,
+        // we can try to re-render it. If it's not stored, this won't work perfectly
+        // without fetching again or passing it as a parameter.
+        // For a full solution, consider a global variable for predictionData too.
+        // As a quick fix for now, let's just make sure the `initializePredictionChart`
+        // call is made with the data if available.
+        // This requires storing `predictionData` in a global scope as well.
+    }
+}
+
+function goToPage(page) {
+    const maxPage = Math.ceil(currentData.length / pageSize) - 1;
+    if (page < 0 || page > maxPage) return;
+
+    currentPage = page;
+    updateDataTableAndCharts();
+}
+
+function changePageSize() {
+    const newSize = parseInt(document.getElementById('page-size').value);
+    pageSize = newSize;
+    currentPage = 0;
+    updateDataTableAndCharts();
+}
+
+function updateDataTableAndCharts() {
+    const tableContainer = document.querySelector('#data-result'); // Target the data-result div
+    
+    // Preserve current prediction data if it exists for re-rendering charts
+    let currentPredictionData = null;
+    if (tableContainer.predictionData) { // Assuming we store it on the container
+        currentPredictionData = tableContainer.predictionData;
+    }
+
+    const newTableHtml = createDataTable();
+    const chartsHtml = createChartsHtml(document.getElementById('symbol-input').value.toUpperCase());
+    let predictionChartHtml = '';
+    if (currentPredictionData && currentPredictionData.predictions && currentPredictionData.predictions.length > 0) {
+        predictionChartHtml = createPredictionChartHtml(currentPredictionData);
+    }
+
+    tableContainer.innerHTML = `
+        <div class="alert alert-success">Successfully loaded ${currentData.length} records for ${document.getElementById('symbol-input').value.toUpperCase()}</div>
+        ${chartsHtml}
+        ${predictionChartHtml}
+        ${newTableHtml}
+    `;
+
+    setTimeout(() => {
+        initializeCharts();
+        if (currentPredictionData) {
+            initializePredictionChart(currentPredictionData);
+        }
+    }, 100);
+}
+
+
+        // Add sample features for testing
+        document.addEventListener('DOMContentLoaded', () => {
+            const featuresInput = document.getElementById('features-input');
+            featuresInput.value = JSON.stringify({
+                "feature1": 0.5,
+                "feature2": 1.2,
+                "feature3": -0.3,
+                "feature4": 2.1,
+                "feature5": 0.8
+            }, null, 2);
+        });
+
+        // Auto-refresh API status every 30 seconds
+        setInterval(checkApiStatus, 30000);
+    </script>
+</body>
+</html>
