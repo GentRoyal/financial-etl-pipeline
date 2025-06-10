@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, validator
 
 import os
+import sys
 import pickle as pkl
 import pandas as pd
 import numpy as np
