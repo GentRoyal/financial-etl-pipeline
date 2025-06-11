@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel, validator
 
@@ -11,6 +9,9 @@ import pickle as pkl
 import pandas as pd
 import numpy as np
 import ast
+
+import sys
+sys.path.append('./app')
 
 from scripts.api_data_fetcher import MyAPI
 from scripts.feature_engineering import TechnicalIndicatorGenerator
@@ -25,24 +26,12 @@ app = FastAPI(
     version = "1.0.0"
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins = ["*"],  
-    allow_credentials = True,
-    allow_methods=["*"],  
-    allow_headers=["*"], 
-)
-
-@app.get("/", response_class = FileResponse)
-async def read_index():
-    return FileResponse("static/index.html")
 
 @app.get('/')
 async def root():
     return {"message" : "Application is Up and Running"}
+
+print('Trading Model Prediction API')
 
 class DataPoint(BaseModel):
     features : dict[str, float]
