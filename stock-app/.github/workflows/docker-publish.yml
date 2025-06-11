@@ -24,3 +24,4 @@ jobs:
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/stock-api:latest
+        
