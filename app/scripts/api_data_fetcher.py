@@ -3,6 +3,7 @@ import os
 import requests
 from io import StringIO
 # from config import settings
+
 from scripts.config import settings
 
 class MyAPI:

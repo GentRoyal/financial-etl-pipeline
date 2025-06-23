@@ -10,5 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy your FastAPI app folder (including main.py and scripts)
 COPY app/ ./app
 
+# Copy your environment file into the container
+COPY v.env ./v.env
+
 # Run the FastAPI app
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
