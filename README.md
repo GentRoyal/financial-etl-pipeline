@@ -121,6 +121,6 @@ Go to [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## ✍️ Author
 
-**Ridwan Yusuf**
-*Data Scientist | Exploring MLOps
+**Ridwan Yusuf: Data Scientist | Exploring MLOps**
+
 [Medium Articles](https://medium.com/@gentroyal) | [LinkedIn](https://www.linkedin.com/in/yusufridwan/)
