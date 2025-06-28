@@ -6,8 +6,8 @@ This project is an end-to-end stock market prediction system that automates data
 
 ## 🌐 Live Demo
 
-**🔗 API Base URL:** `http://<your-ec2-public-ip>:8000`
-**📘 Swagger Docs:** `http://<your-ec2-public-ip>:8000/docs`
+**🔗 API Base URL:** `http://16.171.137.218`
+**📘 Swagger Docs:** `http://16.171.137.218/docs`
 
 ---
 
@@ -31,20 +31,23 @@ stock-etl-pipeline/
 │
 ├── app/                  # FastAPI app logic
 │   ├── main.py
-│   ├── routes/
-│   └── utils/
+│   ├── models/  #Saved Models
+│   ├── mlruns/  # MLflow tracking
+│   ├── data/
+│   │    ├── raw/ #Raw Dataset
+│   │    ├── processed/ #Dataset after feature engineering 
+│   │    ├── results/ # Model Training Results 
+│   │     
+│   └── scripts/
+│        ├──api_data_fetcher.py/                  # ETL scripts
+│        ├── config.py
+│        ├── database_handler.py
+│        ├── feature_engineering.py
+│        ├── model_trainer.py
+│        └── statistical_measures.py
 │
-├── etl/                  # ETL scripts
-│   ├── extract.py
-│   ├── transform.py
-│   └── load.py
-│
-├── models/               # Saved model files
-├── data/                 # Processed data (local testing)
-├── mlflow/               # MLflow tracking
 ├── .github/workflows/    # CI/CD configs
 ├── Dockerfile
-├── docker-compose.yml
 ├── requirements.txt
 └── README.md
 ```
@@ -62,10 +65,12 @@ cd stock-etl-pipeline
 
 2. **Set environment variable**
 
-Create a `.env` file with your API key:
+Create a `v.env` file with your API key from AlphaVantage:
 
 ```
-ALPHAVANTAGE_API_KEY=your_key_here
+API_KEY="your_key_here"
+DB_NAME="data.sqlite"
+MODEL_DIR="models"
 ```
 
 3. **Build and run Docker containers**
@@ -100,9 +105,11 @@ Go to [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## 📦 API Endpoints
 
-* `GET /historical-data/` – View historical data for a stock
-* `POST /predict/` – Get prediction for input features
-* `GET /docs` – Interactive API documentation (Swagger UI)
+* `POST /historical_prediction/` – Make Predictions Based on Existing Data
+* `POST /predict_stock_directions/` – Get Prediction for Input Features
+* `POST /load_data_from_api/` – Get data from AlphaVantage
+* `GET /docs` – Interactive API Documentation (Swagger UI)
+* `GET /model_accuracy` – Get Model Accuracy
 
 ---
 
