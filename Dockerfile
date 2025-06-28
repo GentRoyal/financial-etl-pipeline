@@ -13,5 +13,7 @@ COPY app/ ./app
 # Copy your environment file into the container
 COPY v.env ./v.env
 
+ENV ENVIRONMENT=docker
+
 # Run the FastAPI app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]

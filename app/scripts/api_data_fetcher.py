@@ -2,9 +2,12 @@ import pandas as pd
 import os
 import requests
 from io import StringIO
-# from config import settings
+import logging
 
 from scripts.config import settings
+
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 class MyAPI:
     """
@@ -19,25 +22,35 @@ class MyAPI:
         self.api_key = settings.api_key
         self.base_url = "https://www.alphavantage.co/query"
         
-        absolute_path = os.path.abspath(__file__)
-        directory_name = os.path.dirname(absolute_path)
-        parent_name = os.path.dirname(directory_name)
-        self.path = os.path.join(parent_name, 'data', 'raw')
-    
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
+        self.absolute_path = os.path.abspath(__file__)
+        self.directory_name = os.path.dirname(self.absolute_path)
+        self.parent_name = os.path.dirname(self.directory_name)
+        self.base_path = None
 
     def get_stock(self, symbol, size = "compact"):
         """
         Fetches daily stock data for a given symbol and saves it as a CSV file.
-
         Parameters:
         symbol (str): The stock ticker symbol.
         size (str): The amount of data to fetch ('compact' or 'full').
-
         Returns:
         pd.DataFrame: The stock data as a DataFrame or an empty DataFrame if an error occurs.
         """
+        env = os.getenv("ENVIRONMENT", "local")
+        logger.info(f'Working Environment: {env}')
+
+        if env == "docker":
+            self.base_path = "/app/app"
+            
+        else:
+            self.base_path = self.parent_name
+        
+        self.path = os.path.join(self.base_path, 'data', 'raw')
+    
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+        
         params = {
             "function": "TIME_SERIES_DAILY",
             "symbol": symbol,
@@ -45,25 +58,34 @@ class MyAPI:
             "apikey": self.api_key,
             "datatype": "csv"
         }
-
         try:
+            logger.info(f"Fetching stock data for symbol: {symbol}")
             response = requests.get(self.base_url, params=params, timeout=10)
             response.raise_for_status()
             df = pd.read_csv(StringIO(response.text))
             df.set_index('timestamp', inplace = True)
             df.sort_index(ascending = False)
 
-            df.to_csv(f'{self.path}/{symbol}.csv')
+            # Ensure directory exists
+            if not os.path.exists(self.path):
+                os.makedirs(self.path, exist_ok = True)
 
+            csv_file_path = os.path.join(self.path, f'{symbol}.csv')
+
+            df.to_csv(csv_file_path)
+            logger.info(f"Successfully fetched and saved stock data for {symbol} at {csv_file_path}")
+
+            
             return df
-
         except requests.exceptions.RequestException as req_err:
-            print(f"Request error while fetching stock data: {req_err}")
+            logger.error(f"Request error while fetching stock data for {symbol}: {req_err}")
+            
         except pd.errors.ParserError as parse_err:
-            print(f"Parsing error while reading stock data: {parse_err}")
+            logger.error(f"Parsing error while reading stock data for {symbol}: {parse_err}")
+            
         except Exception as e:
-            print(f"Unexpected error fetching stock data: {e}")
-
+            logger.error(f"Unexpected error fetching stock data for {symbol}: {e}")
+            
         return pd.DataFrame()
 
     def get_crypto(self, symbol, market, size="compact"):
@@ -86,6 +108,21 @@ class MyAPI:
             "apikey": self.api_key,
             "datatype": "csv"
         }
+
+        env = os.getenv("ENVIRONMENT", "local")
+        logger.info(f'Working Environment: {env}')
+    
+        if env == "docker":
+            self.base_path = "/app/app"
+                
+        else:
+            self.base_path = self.parent_name
+            
+        self.path = os.path.join(self.base_path, 'data', 'raw')
+        
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
 
         try:
             response = requests.get(self.base_url, params=params, timeout=10)

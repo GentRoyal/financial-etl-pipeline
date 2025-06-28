@@ -1,1 +1,16 @@
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.env
+.env
+*.db
 **/.ipynb_checkpoints/
+v.env
+.env.*
+mlruns/
+*.pid
+env/
+.venv/
+*.pkl
+*.csv

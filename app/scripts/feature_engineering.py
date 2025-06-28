@@ -25,7 +25,7 @@ class TechnicalIndicatorGenerator:
         pd.DataFrame: Enhanced DataFrame with technical indicators.
         """
 
-        df = pd.read_csv(f'{self.path}/processed/{symbol}.csv') 
+        df = pd.read_csv(f'{self.path}/raw/{symbol}.csv') 
         
         # Utility Indicators
         df['hl2'] = (df['high'] + df['low']) / 2
