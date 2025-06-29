@@ -6,8 +6,8 @@ This project is an end-to-end stock market prediction system that automates data
 
 ## 🌐 Live Demo
 
-**🔗 API Base URL:** `http://16.171.137.218`
-**📘 Swagger Docs:** `http://16.171.137.218/docs`
+**🔗 API Base URL:** `http://13.60.179.140/`
+**📘 Swagger Docs:** `http://13.60.179.140/docs`
 
 ---
 
