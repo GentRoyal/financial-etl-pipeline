@@ -12,5 +12,4 @@ mlruns/
 *.pid
 env/
 .venv/
-*.pkl
 aws/
